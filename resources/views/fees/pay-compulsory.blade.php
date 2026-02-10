@@ -54,32 +54,39 @@
                             <input type="hidden" name="discount_amount" id="discount_amount" value="0">
 
                             <!-- Multi-step Header -->
-                            <div class="fees-stepper no-print mb-4" id="fees-stepper">
-                                <button type="button" class="step-item active" data-step="1">
-                                    <span class="step-index">1</span>
-                                    <span class="step-text">{{ __('Student & Date') }}</span>
-                                </button>
-                                <button type="button" class="step-item" data-step="2">
-                                    <span class="step-index">2</span>
-                                    <span class="step-text">{{ __('Fee Details') }}</span>
-                                </button>
-                                <button type="button" class="step-item" data-step="3">
-                                    <span class="step-index">3</span>
-                                    <span class="step-text">{{ __('Discounts & Extras') }}</span>
-                                </button>
-                                <button type="button" class="step-item" data-step="4">
-                                    <span class="step-index">4</span>
-                                    <span class="step-text">{{ __('Payment & Submit') }}</span>
-                                </button>
-                            </div>
-
-                            <div class="step-nav no-print">
+                            <div class="stepper-row no-print mb-4">
+                            <div class="fees-stepper" id="fees-stepper">
                                 <button type="button" class="btn btn-light step-prev step-icon-btn" aria-label="{{ __('Back') }}" title="{{ __('Back') }}">
                                     <i class="mdi mdi-arrow-left"></i>
                                 </button>
+                                <div class="stepper-steps">
+                                    <button type="button" class="step-item active" data-step="1">
+                                        <span class="step-index">1</span>
+                                        <span class="step-text">{{ __('Student & Date') }}</span>
+                                    </button>
+                                    <button type="button" class="step-item" data-step="2">
+                                        <span class="step-index">2</span>
+                                        <span class="step-text">{{ __('Fee Details') }}</span>
+                                    </button>
+                                    <button type="button" class="step-item step-optional" data-step="3">
+                                        <span class="step-index">3</span>
+                                        <span class="step-text">{{ __('Discounts') }}</span>
+                                        <span class="step-tag">{{ __('Optional') }}</span>
+                                    </button>
+                                    <button type="button" class="step-item step-optional" data-step="4">
+                                        <span class="step-index">4</span>
+                                        <span class="step-text">{{ __('Extras') }}</span>
+                                        <span class="step-tag">{{ __('Optional') }}</span>
+                                    </button>
+                                    <button type="button" class="step-item" data-step="5">
+                                        <span class="step-index">5</span>
+                                        <span class="step-text">{{ __('Payment & Submit') }}</span>
+                                    </button>
+                                </div>
                                 <button type="button" class="btn btn-primary step-next step-icon-btn" aria-label="{{ __('Next') }}" title="{{ __('Next') }}">
                                     <i class="mdi mdi-arrow-right"></i>
                                 </button>
+                            </div>
                             </div>
                             
                             <div class="step-section" data-step="1" id="step-1">
@@ -936,6 +943,10 @@
                                 </div>
                                 
                                 <!-- Extras/Additional Charges Section -->
+                                </div>
+
+                                <div class="step-section" data-step="4" id="step-4">
+                                <!-- Extras/Additional Charges Section -->
                                 <div class="card modern-extras-card mb-4 border-0 shadow-sm">
                                     <div class="card-header modern-extras-header bg-gradient-info text-white py-3">
                                         <div class="d-flex align-items-center">
@@ -978,7 +989,7 @@
                                 </div>
                                 </div>
                                 
-                                <div class="step-section" data-step="4" id="step-4">
+                                <div class="step-section" data-step="5" id="step-5">
                                 <!-- No Payment Required Message -->
                                 <div class="modern-success-alert mb-4" id="no-payment-message" style="display: none;">
                                     <div class="d-flex align-items-center">
@@ -1783,9 +1794,14 @@
         }
 
         /* Multi-step UI */
+        .stepper-row {
+            display: block;
+        }
+
         .fees-stepper {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             gap: 12px;
             background: #f8fafc;
             padding: 12px;
@@ -1793,30 +1809,50 @@
             border: 1px solid #e2e8f0;
         }
 
+        .stepper-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 8px;
+            flex: 1;
+        }
+
         .fees-stepper .step-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
-            border: 2px solid transparent;
+            gap: 8px;
+            padding: 8px 10px;
+            border: 2px solid #93c5fd;
             border-radius: 12px;
-            background: white;
+            background: #eff6ff;
             cursor: pointer;
             transition: all 0.25s ease;
             font-weight: 600;
-            color: #2d3748;
+            color: #1e3a8a;
+            flex-wrap: wrap;
+            row-gap: 4px;
         }
 
         .fees-stepper .step-item:hover {
-            border-color: #667eea;
+            border-color: #60a5fa;
             transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.18);
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.18);
         }
 
         .fees-stepper .step-item.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #f7faff 0%, #edf2ff 100%);
-            box-shadow: 0 8px 18px rgba(102, 126, 234, 0.22);
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
+            box-shadow: 0 8px 18px rgba(34, 197, 94, 0.22);
+        }
+
+        .fees-stepper .step-item.step-optional {
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border-color: #fed7aa;
+            color: #7c2d12;
+        }
+
+        .fees-stepper .step-item.step-optional.active {
+            border-color: #fb923c;
+            box-shadow: 0 8px 18px rgba(251, 146, 60, 0.22);
         }
 
         .fees-stepper .step-item.disabled {
@@ -1828,19 +1864,39 @@
             width: 30px;
             height: 30px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             color: white;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             flex-shrink: 0;
         }
 
+        .fees-stepper .step-item.active .step-index {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .fees-stepper .step-item.step-optional .step-index {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        }
 
         .fees-stepper .step-text {
-            font-size: 14px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .fees-stepper .step-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(251, 146, 60, 0.2);
+            color: #7c2d12;
+            margin-left: 0;
         }
 
         .step-section {
@@ -1852,19 +1908,7 @@
         }
 
         .step-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin: 0 0 18px;
-            position: sticky;
-            top: 12px;
-            z-index: 50;
-            padding: 8px 12px;
-            background: rgba(248, 250, 252, 0.95);
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            backdrop-filter: blur(6px);
+            display: none;
         }
 
         .step-icon-btn {
@@ -3500,6 +3544,20 @@
             .amount-badge, .amount-badge-danger {
                 padding: 8px 15px;
                 font-size: 0.95rem;
+            }
+
+            .stepper-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .fees-stepper {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .stepper-steps {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             }
             
             /* Installment Card Responsive */
