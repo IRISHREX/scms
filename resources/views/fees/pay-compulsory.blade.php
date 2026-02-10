@@ -29,6 +29,9 @@
                             <small class="opacity-90">Complete the details below to process the payment</small>
                         </div>
                         <div class="btn-group shadow-sm">
+                            <button type="button" class="btn btn-info btn-sm modern-btn" id="process-overview-toggle" aria-label="{{ __('Toggle Table View') }}" title="{{ __('Toggle Table View') }}">
+                                <i class="mdi mdi-table-large"></i> {{ __('Table View') }}
+                            </button>
                             <button type="button" class="btn btn-warning btn-sm modern-btn" id="print-fee-details" onclick="printFeeDetails()">
                                 <i class="mdi mdi-printer"></i> {{ __('Print') }}
                             </button>
@@ -49,6 +52,37 @@
                             <input type="hidden" id="total_installment_amount" value="0">
                             <input type="hidden" name="due_charges_amount" value="{{ $due_charges }}">
                             <input type="hidden" name="discount_amount" id="discount_amount" value="0">
+
+                            <!-- Multi-step Header -->
+                            <div class="fees-stepper no-print mb-4" id="fees-stepper">
+                                <button type="button" class="step-item active" data-step="1">
+                                    <span class="step-index">1</span>
+                                    <span class="step-text">{{ __('Student & Date') }}</span>
+                                </button>
+                                <button type="button" class="step-item" data-step="2">
+                                    <span class="step-index">2</span>
+                                    <span class="step-text">{{ __('Fee Details') }}</span>
+                                </button>
+                                <button type="button" class="step-item" data-step="3">
+                                    <span class="step-index">3</span>
+                                    <span class="step-text">{{ __('Discounts & Extras') }}</span>
+                                </button>
+                                <button type="button" class="step-item" data-step="4">
+                                    <span class="step-index">4</span>
+                                    <span class="step-text">{{ __('Payment & Submit') }}</span>
+                                </button>
+                            </div>
+
+                            <div class="step-nav no-print">
+                                <button type="button" class="btn btn-light step-prev step-icon-btn" aria-label="{{ __('Back') }}" title="{{ __('Back') }}">
+                                    <i class="mdi mdi-arrow-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary step-next step-icon-btn" aria-label="{{ __('Next') }}" title="{{ __('Next') }}">
+                                    <i class="mdi mdi-arrow-right"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="step-section" data-step="1" id="step-1">
                             
                             <!-- Student Information Card -->
                             <div class="student-info-card mb-4">
@@ -99,6 +133,166 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
+
+                            <!-- Process Overview (Table / Filter / Action) -->
+                            <div class="card process-overview-card mb-4 no-print" id="process-overview-card" style="display: none;">
+                                <div class="card-header process-overview-header bg-gradient-primary text-white py-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h5 class="mb-0 font-weight-bold"><i class="mdi mdi-table-large"></i> {{ __('Payment Process Overview') }}</h5>
+                                            <small class="opacity-90">{{ __('Filter steps and jump to actions below') }}</small>
+                                        </div>
+                                        <span class="badge badge-light text-dark">{{ __('Table View') }}</span>
+                                    </div>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="process-toolbar mb-3">
+                                        <label for="process-filter-input" class="modern-label mb-2">
+                                            <i class="mdi mdi-filter-variant text-primary"></i> {{ __('Filter Steps') }}
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="text" id="process-filter-input" class="form-control modern-input" placeholder="{{ __('Type to filter (e.g., fee, installment, payment)') }}">
+                                            <div class="input-group-append">
+                                                <button type="button" id="process-filter-clear" class="btn btn-light">
+                                                    <i class="mdi mdi-close"></i> {{ __('Clear') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped process-overview-table" id="process-overview-table">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th width="25%">{{ __('Step') }}</th>
+                                                    <th width="45%">{{ __('Description') }}</th>
+                                                    <th width="15%">{{ __('Status') }}</th>
+                                                    <th width="15%" class="text-center">{{ __('Action') }}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <span class="step-badge">1</span>
+                                                        {{ __('Fee Details') }}
+                                                    </td>
+                                                    <td>{{ __('Review compulsory fee items and totals.') }}</td>
+                                                    <td><span class="badge badge-info">{{ __('Required') }}</span></td>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#fee-details-section">
+                                                            <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+
+                                                @if(count($fees->installments))
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">2</span>
+                                                            {{ __('Installments') }}
+                                                        </td>
+                                                        <td>{{ __('Select installments, apply installment discounts, and review charges.') }}</td>
+                                                        <td><span class="badge badge-warning">{{ __('Optional') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#installment-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+
+                                                @if ($student->fees_paid && !$isFullyPaid && $installment_status == 0)
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">3</span>
+                                                            {{ __('Paid History') }}
+                                                        </td>
+                                                        <td>{{ __('Review existing payment records for this student.') }}</td>
+                                                        <td><span class="badge badge-secondary">{{ __('Info') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#paid-history-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+
+                                                @if ($isFullyPaid && $installment_status == 1)
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">3</span>
+                                                            {{ __('Payment Summary') }}
+                                                        </td>
+                                                        <td>{{ __('View total paid summary for all installments.') }}</td>
+                                                        <td><span class="badge badge-success">{{ __('Completed') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#payment-summary-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+
+                                                @if (!$isFullyPaid)
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">4</span>
+                                                            {{ __('Discounts') }}
+                                                        </td>
+                                                        <td>{{ __('Apply discounts and add remarks if needed.') }}</td>
+                                                        <td><span class="badge badge-warning">{{ __('Optional') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#discount-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">5</span>
+                                                            {{ __('Additional Charges') }}
+                                                        </td>
+                                                        <td>{{ __('Add any extra fee items to this payment.') }}</td>
+                                                        <td><span class="badge badge-warning">{{ __('Optional') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#extras-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">6</span>
+                                                            {{ __('Payment Mode') }}
+                                                        </td>
+                                                        <td>{{ __('Choose cash, cheque, or UPI and fill details.') }}</td>
+                                                        <td><span class="badge badge-info">{{ __('Required') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#payment-mode-section">
+                                                                <i class="mdi mdi-eye"></i> {{ __('View') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <span class="step-badge">7</span>
+                                                            {{ __('Submit Payment') }}
+                                                        </td>
+                                                        <td>{{ __('Finalize and process the payment.') }}</td>
+                                                        <td><span class="badge badge-info">{{ __('Required') }}</span></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-sm btn-primary process-scroll" data-target="#submit-button-section">
+                                                                <i class="mdi mdi-send"></i> {{ __('Go') }}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="modern-divider my-4"></div>
                             
@@ -126,7 +320,8 @@
                                     </div>
                                 </div>
 
-                                <div class="section-title-modern mb-4">
+                                <div class="step-section" data-step="2" id="step-2">
+                                <div class="section-title-modern mb-4" id="fee-details-section">
                                     <div class="d-flex align-items-center">
                                         <div class="section-icon-box">
                                             <i class="mdi mdi-format-list-bulleted"></i>
@@ -213,7 +408,7 @@
                                             @endif
                                         
                                         @if(count($fees->installments))
-                                            <tr class="pay-in-installment-row">
+                                            <tr class="pay-in-installment-row" id="installment-section">
                                                 <td class="text-left"></td>
                                                 <td colspan="2" class="text-left">
                                                     <label for="pay-in-installment-chk">{{__("Pay in installment")}}</label>
@@ -650,6 +845,7 @@
                                     </table>
                                 </div>
                             </div>
+                            </div>
                             
                             <!-- Print Footer (hidden on screen) -->
                             <div class="print-footer" style="display: none;">
@@ -672,6 +868,7 @@
                             <hr class="my-4 no-print">
                             
                             @if (!$isFullyPaid)
+                                <div class="step-section" data-step="3" id="step-3">
                                 <!-- Discount Section -->
                                 <div class="card modern-discount-card mb-4 border-0 shadow-sm">
                                     <div class="card-header modern-discount-header bg-gradient-success text-white py-3">
@@ -779,7 +976,9 @@
                                         </div>
                                     </div>
                                 </div>
+                                </div>
                                 
+                                <div class="step-section" data-step="4" id="step-4">
                                 <!-- No Payment Required Message -->
                                 <div class="modern-success-alert mb-4" id="no-payment-message" style="display: none;">
                                     <div class="d-flex align-items-center">
@@ -928,6 +1127,7 @@
                                         <i class="mdi mdi-shield-check"></i> {{ __('Secure and encrypted payment processing') }}
                                     </p>
                                 </div>
+                                </div>
                             @endif
                             
                         </form>
@@ -959,6 +1159,127 @@
         @if($student->fees_paid)
         $('.pay-in-installment').trigger('click').attr("disabled", true);
         @endif
+
+        // Process overview filter + scroll
+        $(document).ready(function() {
+            $('#process-filter-input').on('input', function() {
+                var filter = $(this).val().toLowerCase().trim();
+                $('#process-overview-table tbody tr').each(function() {
+                    var text = $(this).text().toLowerCase();
+                    $(this).toggle(text.indexOf(filter) !== -1);
+                });
+            });
+
+            $('#process-filter-clear').on('click', function() {
+                $('#process-filter-input').val('').trigger('input');
+            });
+
+            $(document).on('click', '.process-scroll', function() {
+                var target = $(this).data('target');
+                if (!target) return;
+                var $el = $(target);
+                if (!$el.length) return;
+
+                var $section = $el.closest('.step-section');
+                if ($section.length && typeof window.showFeesStep === 'function') {
+                    window.showFeesStep(parseInt($section.data('step'), 10));
+                }
+
+                $('html, body').animate({
+                    scrollTop: $el.offset().top - 100
+                }, 400);
+            });
+        });
+
+        // Multi-step navigation (free navigation)
+        $(document).ready(function() {
+            var $sections = $('.step-section');
+            if (!$sections.length) {
+                return;
+            }
+
+            var availableSteps = [];
+            $sections.each(function() {
+                var step = parseInt($(this).data('step'), 10);
+                if (!isNaN(step) && availableSteps.indexOf(step) === -1) {
+                    availableSteps.push(step);
+                }
+            });
+            availableSteps.sort(function(a, b) { return a - b; });
+
+            // Hide stepper items that don't exist in DOM
+            $('#fees-stepper .step-item').each(function() {
+                var step = parseInt($(this).data('step'), 10);
+                if (availableSteps.indexOf(step) === -1) {
+                    $(this).addClass('disabled').prop('disabled', true).hide();
+                }
+            });
+
+            function showStep(step) {
+                $sections.removeClass('active').hide();
+                var $active = $sections.filter('[data-step="' + step + '"]');
+                if (!$active.length) {
+                    step = availableSteps[0];
+                    $active = $sections.filter('[data-step="' + step + '"]');
+                }
+                $active.addClass('active').show();
+
+                $('#fees-stepper .step-item').removeClass('active');
+                $('#fees-stepper .step-item[data-step="' + step + '"]').addClass('active');
+
+                var currentIndex = availableSteps.indexOf(step);
+                $('.step-prev').prop('disabled', currentIndex <= 0);
+                if (currentIndex >= availableSteps.length - 1) {
+                    $('.step-next').hide();
+                } else {
+                    $('.step-next').show();
+                }
+
+                $('html, body').animate({
+                    scrollTop: $('.fees-stepper').offset().top - 80
+                }, 250);
+            }
+
+            window.showFeesStep = showStep;
+
+            // Init
+            showStep(availableSteps[0]);
+
+            // Clickable stepper
+            $(document).on('click', '#fees-stepper .step-item', function() {
+                if ($(this).hasClass('disabled')) return;
+                var step = parseInt($(this).data('step'), 10);
+                showStep(step);
+            });
+
+            // Prev/Next buttons
+            $(document).on('click', '.step-prev', function() {
+                var current = parseInt($('#fees-stepper .step-item.active').data('step'), 10);
+                var idx = availableSteps.indexOf(current);
+                if (idx > 0) {
+                    showStep(availableSteps[idx - 1]);
+                }
+            });
+
+            $(document).on('click', '.step-next', function() {
+                var current = parseInt($('#fees-stepper .step-item.active').data('step'), 10);
+                var idx = availableSteps.indexOf(current);
+                if (idx < availableSteps.length - 1) {
+                    showStep(availableSteps[idx + 1]);
+                }
+            });
+
+            // Toggle table view
+            $(document).on('click', '#process-overview-toggle', function() {
+                $('#process-overview-card').slideToggle(200);
+                $(this).toggleClass('active');
+                if ($('#process-overview-card').is(':visible')) {
+                    $('html, body').animate({
+                        scrollTop: $('#process-overview-card').offset().top - 80
+                    }, 250);
+                }
+            });
+        });
 
         function successFunction() {
             window.location.href = "{{route('fees.paid.index')}}";
@@ -1417,6 +1738,147 @@
         .modern-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Process Overview */
+        .process-overview-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
+            border: 1px solid #e2e8f0;
+        }
+
+        .process-overview-header {
+            border-bottom: none;
+        }
+
+        .process-overview-table thead th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .process-overview-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .process-overview-table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 8px;
+            box-shadow: 0 3px 8px rgba(102, 126, 234, 0.35);
+        }
+
+        /* Multi-step UI */
+        .fees-stepper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .fees-stepper .step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .fees-stepper .step-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(102, 126, 234, 0.18);
+        }
+
+        .fees-stepper .step-item.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f7faff 0%, #edf2ff 100%);
+            box-shadow: 0 8px 18px rgba(102, 126, 234, 0.22);
+        }
+
+        .fees-stepper .step-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .fees-stepper .step-index {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+
+        .fees-stepper .step-text {
+            font-size: 14px;
+        }
+
+        .step-section {
+            display: none;
+        }
+
+        .step-section.active {
+            display: block;
+        }
+
+        .step-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 18px;
+            position: sticky;
+            top: 12px;
+            z-index: 50;
+            padding: 8px 12px;
+            background: rgba(248, 250, 252, 0.95);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+        }
+
+        .step-icon-btn {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            padding: 0;
+        }
+
+        .step-icon-btn i {
+            font-size: 20px;
         }
         
         /* Student Info Card */
@@ -3581,6 +4043,10 @@
             form .form-group:not(.compulsory-fees-content),
             hr.no-print {
                 display: none !important;
+            }
+
+            .step-section {
+                display: block !important;
             }
             
             /* Show print-only elements */
